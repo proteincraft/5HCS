@@ -1,0 +1,83 @@
+
+
+# Creating the correct python environment
+
+
+conda create -n jhr python=3.7
+
+conda activate jhr
+
+conda install numba
+conda install numpy
+conda install pandas
+conda install scipy
+
+pip install npose
+pip install xbin
+pip install getpy
+
+
+git clone https://github.com/bcov77/atomic_depth.git
+pip install ./atomic_depth
+
+
+
+# there's a bug in xbin/homog...
+python
+import homog
+print(homog) # remember this path
+exit
+
+sed -i -e 's/nopython=1/nopython=True/g' -e 's/fastmath=1/fastmath=True/g' -e 's/(func)  # nogil not supported/(func.py_func)  # nogil not supported/g' /the/full/path/to/site-packages/homog/util.py
+
+
+
+
+
+How to make JHRs:
+
+# the current directory should have the unzipped versions of
+# jhr_generation/
+# jhr_generation_dbs/
+
+# database generation
+
+find $(pwd)/jhr_generation_dbs/helices -name '*.pdb.gz' > helices.list
+find $(pwd)/jhr_generation_dbs/turns -name '*.pdb.gz' > turns.list
+./jhr_generation/make_graftable_database2.py helices.list turns.list
+
+
+
+# actually make JHRS
+
+# This command is not deterministic. Run this for as long as necessary until you have enough. (Like, thousands of hours probably)
+# Save all the lines written to stdout that start with [('origin'
+
+./jhr_generation/helical_worms.py helices.list turns.list -allowable_db graftable_databases/turns.list_helices.list_turnres_2_helixres_1_minadd_3_rmsd_0.300.json
+
+# Save the results of that command in jhrs.log
+
+
+
+
+# look at jhrs without trimming
+
+./jhr_generation/render_worms.py helices.list turns.list jhrs.log -allowable_db graftable_databases/turns.list_helices.list_turnres_2_helixres_1_minadd_3_rmsd_0.300.json
+
+
+
+# trim JHRs and output final backbones
+
+./jhr_generation/jhr_trimmer2.py -helix_list helices.list -turn_list turns.list -worm_segments jhrs.log -allowable_db graftable_databases/turns.list_helices.list_turnres_2_helixres_1_minadd_3_rmsd_0.300.json
+
+
+
+
+
+
+
+
+
+
+
+
